@@ -15,21 +15,23 @@ namespace ShippingServiceAPI.Controllers
         private const string RabbitMqHost = "rabbitmq"; // Docker network name
 
         [HttpPost]
-        public IActionResult ShipOrder([FromBody] OrderDTO order)
+        public async Task<IActionResult> ShipOrder([FromBody] OrderDTO order)
         {
             if (order == null)
                 return BadRequest("Invalid order data");
 
-            // Omdan OrderDTO til en ShippingRequest
+            // Convert OrderDTO to ShippingRequest
             var shippingRequest = new ShippingRequest
             {
                 CustomerName = order.CustomerName,
                 PickupAddress = order.PickupAddress,
-                DeliveryAddress = order.DeliveryAddress
+                DeliveryAddress = order.DeliveryAddress,
+                DeliveryDate = order.DateTime.AddDays(1).ToString("yyyy-MM-dd"),
+
             };
 
-            // Send til RabbitMQ
-            PublishToRabbitMQ(shippingRequest);
+            // Send to RabbitMQ asynchronously
+            await PublishToRabbitMQ(shippingRequest);
 
             return Ok($"Shipping request created with PackageId: {shippingRequest.PackageId}");
         }
@@ -37,37 +39,33 @@ namespace ShippingServiceAPI.Controllers
         private async Task PublishToRabbitMQ(ShippingRequest request)
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
-            using (var connection = factory.CreateConnectionAsync())
-            using (var channel = connection.CreateChannel())
-            {
-                channel.QueueDeclare(queue: "hello",
+
+            // Open async connection and channel
+            await using var connection = await factory.CreateConnectionAsync();
+            await using var channel = await connection.CreateChannelAsync();
+
+            await channel.QueueDeclareAsync(
+                queue: QueueName,
                 durable: false,
                 exclusive: false,
                 autoDelete: false,
-                arguments: null);
-                var body = JsonSerializer.SerializeToUtf8Bytes(request);
-                channel.BasicPublish(exchange: "",
-                routingKey: "hello",
-                basicProperties: null,
-                body: body);
-            }
+                arguments: null
+            );
 
-            // Fix: Create a non-async channel to generate BasicProperties
-            using var syncConnection = factory.CreateConnectionAsync();  // Synchronous connection
-            using var syncChannel = syncConnection.CreateChannelAsync();  // Synchronous channel
-            var properties = syncChannel.CreateBasicProperties();  // Create BasicProperties
-            properties.Persistent = false; // Message is not persistent
+            var body = JsonSerializer.SerializeToUtf8Bytes(request);
+
+            // Create BasicProperties in an async way
+            var properties = new BasicProperties(); // Create an empty BasicProperties object
 
             await channel.BasicPublishAsync(
                 exchange: "",
                 routingKey: QueueName,
-                mandatory: false, // Set to false unless you need guaranteed delivery
-                basicProperties: properties,
-                body: new ReadOnlyMemory<byte>(body) // Wrap body in ReadOnlyMemory<byte>
+                mandatory: false,
+                basicProperties: properties, // Use default properties
+                body: new ReadOnlyMemory<byte>(body)
+            
+           
             );
         }
-
-
     }
 }
-
