@@ -6,6 +6,8 @@
         public string CustomerName { get; set; }
         public string PickupAddress { get; set; }
         public string DeliveryAddress { get; set; }
+
+        public DateTime DateTime { get; set; }
     }
 
 }
