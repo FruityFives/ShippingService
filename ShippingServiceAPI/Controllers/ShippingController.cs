@@ -38,9 +38,12 @@ namespace ShippingServiceAPI.Controllers
 
         private async Task PublishToRabbitMQ(ShippingRequest request)
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
+            // Læs RabbitMQ host fra miljøvariabler (Docker Compose sætter denne automatisk)
+            var rabbitMqHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
 
-            // Open async connection and channel
+            var factory = new ConnectionFactory() { HostName = rabbitMqHost };
+
+            // Opret forbindelse til RabbitMQ
             await using var connection = await factory.CreateConnectionAsync();
             await using var channel = await connection.CreateChannelAsync();
 
