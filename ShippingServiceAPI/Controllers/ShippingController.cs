@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Formats.Asn1;
 using System.Globalization;
 using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace ShippingServiceAPI.Controllers
 {
@@ -76,23 +77,45 @@ namespace ShippingServiceAPI.Controllers
         }
 
         [HttpGet]
+        [Route("deliveryplan")]
         public IActionResult GetDeliveryPlanForToday()
         {
-            if (!System.IO.File.Exists(CsvFilePath))
+            try
             {
-                return NotFound("CSV file not found.");
+                if (!System.IO.File.Exists(CsvFilePath))
+                {
+                    return NotFound("CSV file not found.");
+                }
+
+                var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    HasHeaderRecord = true
+                };
+
+                using var reader = new StreamReader(CsvFilePath);
+                using var csv = new CsvReader(reader, config);
+
+                var records = csv.GetRecords<Ship>().ToList();
+
+                return Ok(records);
             }
-
-            using var reader = new StreamReader(CsvFilePath);
-            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
-
-            var records = csv.GetRecords<ShippingRequest>().ToList();
-
-            return Ok(records);
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.InnerException.Message);
+            }
         }
 
 
     }
 
-   
+    public class Ship
+    {
+        public string CustomerName { get; set; }
+        public string PickupAddress { get; set; }
+        public string PackageId { get; set; } 
+        public string DeliveryAddress { get; set; }
+
+        public string Date { get; set; }
+    }
+
 }
