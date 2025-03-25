@@ -4,6 +4,9 @@ using System.Text.Json;
 using System.Text;
 using RabbitMQ.Client;
 using System.Threading.Tasks;
+using System.Formats.Asn1;
+using System.Globalization;
+using CsvHelper;
 
 namespace ShippingServiceAPI.Controllers
 {
@@ -11,8 +14,9 @@ namespace ShippingServiceAPI.Controllers
     [Route("api/shipping")]
     public class ShippingController : ControllerBase
     {
-        private const string QueueName = "shippingQueue";
+        private const string QueueName = "shippingQueue"; // Name of the RabbitMQ queue
         private const string RabbitMqHost = "rabbitmq"; // Docker network name
+        private const string CsvFilePath = "/app/data/shippingRequests.csv"; // Sti til volumen
 
         [HttpPost]
         public async Task<IActionResult> ShipOrder([FromBody] OrderDTO order)
@@ -70,5 +74,25 @@ namespace ShippingServiceAPI.Controllers
            
             );
         }
+
+        [HttpGet]
+        public IActionResult GetDeliveryPlanForToday()
+        {
+            if (!System.IO.File.Exists(CsvFilePath))
+            {
+                return NotFound("CSV file not found.");
+            }
+
+            using var reader = new StreamReader(CsvFilePath);
+            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+
+            var records = csv.GetRecords<ShippingRequest>().ToList();
+
+            return Ok(records);
+        }
+
+
     }
+
+   
 }
