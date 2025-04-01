@@ -19,6 +19,8 @@ namespace ShippingServiceAPI.Controllers
         private const string RabbitMqHost = "rabbitmq"; // Docker network name
         private const string CsvFilePath = "/app/data/shippingRequests.csv"; // Sti til volumen
 
+
+
         [HttpPost]
         public async Task<IActionResult> ShipOrder([FromBody] OrderDTO order)
         {
@@ -71,8 +73,8 @@ namespace ShippingServiceAPI.Controllers
                 mandatory: false,
                 basicProperties: properties, // Use default properties
                 body: new ReadOnlyMemory<byte>(body)
-            
-           
+
+
             );
         }
 
@@ -112,7 +114,7 @@ namespace ShippingServiceAPI.Controllers
     {
         public string CustomerName { get; set; }
         public string PickupAddress { get; set; }
-        public string PackageId { get; set; } 
+        public string PackageId { get; set; }
         public string DeliveryAddress { get; set; }
 
         public string Date { get; set; }
