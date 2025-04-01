@@ -7,6 +7,19 @@
     <UserSecretsId>8f93629a-85b0-45d7-902e-9af73b6daed7</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+
+    <Company>Handel og Vandel A/S</Company>
+    <Authors>Fruity</Authors>
+    <Copyright>2024 HTU Aps</Copyright>
+
+    <AssemblyVersion>1.0.1.1</AssemblyVersion>
+    <FileVersion>1.0.1.1</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+
+    <Description>
+      1.0.0 Updated with semantic versioning
+      0.9.0 Dockerfile Service Added to App
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>
