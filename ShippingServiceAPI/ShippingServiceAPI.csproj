@@ -17,6 +17,7 @@
     <InformationalVersion>1.0.0</InformationalVersion>
 
     <Description>
+      1.0.1 Semantisk Test
       1.0.0 Updated with semantic versioning
       0.9.0 Dockerfile Service Added to App
     </Description>
