@@ -8,6 +8,7 @@ using System.Formats.Asn1;
 using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
+using System.Diagnostics;
 
 namespace ShippingServiceAPI.Controllers
 {
@@ -18,6 +19,33 @@ namespace ShippingServiceAPI.Controllers
         private const string QueueName = "shippingQueue"; // Name of the RabbitMQ queue
         private const string RabbitMqHost = "rabbitmq"; // Docker network name
         private const string CsvFilePath = "/app/data/shippingRequests.csv"; // Sti til volumen
+
+        [HttpGet("version")]
+        public async Task<Dictionary<string, string>> GetVersion()
+        {
+            var properties = new Dictionary<string, string>();
+            var assembly = typeof(Program).Assembly;
+
+            properties.Add("service", "HaaV User Service");
+
+            var ver = FileVersionInfo.GetVersionInfo(assembly.Location).ProductVersion;
+            properties.Add("version", ver!);
+
+            try
+            {
+                var hostName = System.Net.Dns.GetHostName();
+                var ips = await System.Net.Dns.GetHostAddressesAsync(hostName);
+                var ipa = ips.First().MapToIPv4().ToString();
+                properties.Add("hosted-at-address", ipa);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                properties.Add("hosted-at-address", "Could not resolve IP-address");
+            }
+
+            return properties;
+        }
 
 
 
