@@ -20,6 +20,15 @@ namespace ShippingServiceAPI.Controllers
         private const string RabbitMqHost = "rabbitmq"; // Docker network name
         private const string CsvFilePath = "/app/data/shippingRequests.csv"; // Sti til volumen
 
+        private readonly ILogger<ShippingController> _logger;
+
+        public ShippingController(ILogger<ShippingController> logger)
+        {
+
+            _logger = logger;
+
+        }
+
         [HttpGet("version")]
         public async Task<Dictionary<string, string>> GetVersion()
         {
