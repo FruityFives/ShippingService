@@ -8,13 +8,14 @@ services:
     restart: always
 
   shippingserviceapi:
-    build: ./ShippingServiceAPI  
+    build: ./ShippingServiceAPI
     container_name: shippingserviceapi
     depends_on:
       - rabbitmq
     environment:
       - RABBITMQ_HOST=rabbitmq
       - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_ENVIRONMENT=Development
     ports:
       - "5000:5000"
     restart: always

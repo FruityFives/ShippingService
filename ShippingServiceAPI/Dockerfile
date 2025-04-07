@@ -7,3 +7,4 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
 WORKDIR /app
 COPY --from=build /app/published-app /app
 ENTRYPOINT ["dotnet", "/app/ShippingServiceAPI.dll"]
+
