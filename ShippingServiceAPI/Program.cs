@@ -35,6 +35,7 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
+    logger.Info("🔥 Test log from shipping-service");
 
     app.Run();
 }
