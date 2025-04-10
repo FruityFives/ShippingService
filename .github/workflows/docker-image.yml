@@ -1,4 +1,4 @@
-name: Byg et Docker Image
+name: Build and Push Docker Image
 
 on:
   push:
@@ -8,41 +8,33 @@ on:
 
 jobs:
   docker_image_pipeline:
-    name: Build Docker image to Docker Hub
+    name: Build Docker image and push to Docker Hub
     runs-on: ubuntu-latest
 
     permissions:
-      packages: write
       contents: read
-      attestations: write
-      id-token: write
 
     env:
-      DOCKER_USER: ${{ secrets.DOCKER_USER }}
       IMAGE_NAME: shipping-service
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Extract version from .csproj
-        id: extract_version
-        run: |
-          VERSION=$(grep '<InformationalVersion>' ShippingServiceAPI/ShippingServiceAPI.csproj | sed -E 's/.*<InformationalVersion>(.*)<\/InformationalVersion>.*/\1/')
-          echo "VERSION=$VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Login to Docker Hub
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASSWORD }}
 
-      - name: Build the Docker image
+      - name: Build Docker image
         run: |
-          docker build . \
-            -f ShippingServiceAPI/Dockerfile \
-            -t ${{ secrets.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ steps.extract_version.outputs.version }}
+          docker build -f ShippingServiceAPI/Dockerfile \
+            -t ${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:latest \
+            ShippingServiceAPI
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker push ${{ secrets.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ steps.extract_version.outputs.version }}
+          docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:latest
